@@ -1,30 +1,22 @@
-// This file helps Netlify determine which files to include in the function bundle
-// Only include what's absolutely necessary for the functions to run
+// Only include essential files for serverless functions
 module.exports = [
-  // Include the built Next.js pages
+  // Next.js server files
   '.next/server/pages/**/*.js',
-  '.next/server/chunks/**/*',
+  '.next/server/chunks/**/*.js',
   '.next/static/chunks/pages/**/*.js',
   
-  // Include public assets
-  'public/**/*',
+  // Public assets (be specific)
+  'public/assets/**/*',
+  'public/logo*.svg',
   
-  // Include environment variables
-  '.env*',
-  
-  // Include package files
-  'package.json',
-  'package-lock.json',
-  
-  // Include Next.js config
+  // Configuration
   'next.config.js',
+  'package.json',
   
-  // Include any other necessary files
-  'src/**/*',
-  'components/**/*',
-  'lib/**/*',
-  'middleware.js',
-  'tailwind.config.js',
-  'postcss.config.js',
-  'tsconfig.json'
+  // Source code (be specific to API routes and server components)
+  'src/app/api/**/*',
+  'src/app/**/page.tsx',
+  'src/app/**/layout.tsx',
+  'src/lib/supabase/**/*',
+  'src/middleware.ts'
 ]

@@ -4,15 +4,30 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@supabase/functions-js", "@supabase/supabase-js"]
-  included_files = [
-    "public/**",
-    "src/**",
-    "next.config.js",
-    "package.json",
-    "package-lock.json"
+  external_node_modules = [
+    "@supabase/functions-js", 
+    "@supabase/supabase-js",
+    "@supabase/auth-helpers-nextjs",
+    "@supabase/ssr"
   ]
+  included_files = [
+    ".netlify/functions-include.js"
+  ]
+  node_bundler = "esbuild"
   directory = ".next/server/pages"
+  
+# Disable function packaging for static assets
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    externalNodeModules = ["@supabase/supabase-js", "@supabase/auth-helpers-nextjs"]
+    includeDotNext = true
+    includeStatic = false  # Don't include static files in functions
+
+[build.environment]
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"  # We're handling the build manually
+  NEXT_TELEMETRY_DISABLED = "1"      # Disable Next.js telemetry
+  NODE_ENV = "production"            # Ensure production mode
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
