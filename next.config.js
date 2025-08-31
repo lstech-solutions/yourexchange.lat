@@ -15,10 +15,7 @@ const nextConfig = {
         domains: ['images.unsplash.com'],
     },
     transpilePackages: ['framer-motion'],
-    experimental: {
-        esmExternals: 'loose',
-        serverComponentsExternalPackages: ['@supabase/supabase-js']
-    },
+    serverExternalPackages: ['@supabase/supabase-js'],
     webpack: (config, { isServer, dev }) => {
         // Ignore Deno-related files and imports
         const { IgnorePlugin } = require('webpack');
