@@ -1,16 +1,37 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 
-// Remove the custom babel config since we'll use SWC
-const fs = require('fs');
-if (fs.existsSync(path.join(process.cwd(), '.babelrc'))) {
-    fs.renameSync(
-        path.join(process.cwd(), '.babelrc'),
-        path.join(process.cwd(), '.babelrc.bak')
-    );
-}
-
 const nextConfig = {
+  // Enable React strict mode
+  reactStrictMode: true,
+  
+  // Configure webpack
+  webpack: (config, { isServer, dev }) => {
+    // Add custom webpack configurations
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve.alias,
+        // Ensure consistent module resolution
+        '@/components': path.resolve(__dirname, './src/components'),
+      },
+    };
+
+    return config;
+  },
+  
+  // Enable server components external packages
+  experimental: {
+    externalDir: true,
+    serverComponentsExternalPackages: [
+      '@radix-ui/*', 
+      'class-variance-authority', 
+      'clsx', 
+      'tailwind-merge',
+      'framer-motion',
+      'lucide-react'
+    ],
+  },
     output: 'standalone',
     transpilePackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     images: {
