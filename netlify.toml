@@ -1,6 +1,18 @@
-[[plugins]]
-package = "@netlify/plugin-nextjs"
+[build]
+  command = "npm run build"
+  publish = ".next"
 
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["@supabase/functions-js"]
+  directory = ".next/server/pages"
+
+[[plugins]]
+package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NEXT_PRIVATE_TARGET = "server"
+
+[[edge_functions]]
+  function = "middleware"
+  path = "/*"
