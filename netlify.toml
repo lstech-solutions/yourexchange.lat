@@ -4,7 +4,14 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@supabase/functions-js"]
+  external_node_modules = ["@supabase/functions-js", "@supabase/supabase-js"]
+  included_files = [
+    "public/**",
+    "src/**",
+    "next.config.js",
+    "package.json",
+    "package-lock.json"
+  ]
   directory = ".next/server/pages"
 
 [[plugins]]
