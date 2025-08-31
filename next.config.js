@@ -16,7 +16,7 @@ const nextConfig = {
         domains: ['images.unsplash.com'],
         unoptimized: true, // Disable Image Optimization API
     },
-    transpilePackages: ['framer-motion'],
+    transpilePackages: [],
     experimental: {
         outputFileTracingRoot: path.join(__dirname, '../../'),
         outputFileTracingExcludes: {
