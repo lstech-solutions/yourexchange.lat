@@ -7,30 +7,31 @@ import { useEffect, useState } from 'react';
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     let mounted = true;
 
-    const getUser = async () => {
+    const getInitialSession = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
         if (error) {
-          if (error.status !== 401) { // Don't log 401 errors (common for unauthenticated users)
-            console.error('Error getting user:', error);
-          }
+          console.error('Error getting session:', error);
           setUser(null);
-        } else {
-          setUser(user);
+          setSession(null);
+          return;
         }
+
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
       } catch (error) {
-        if (mounted) {
-          console.error('Unexpected error:', error);
-          setUser(null);
-        }
+        console.error('Unexpected error getting session:', error);
+        setUser(null);
+        setSession(null);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -38,16 +39,17 @@ export function useAuth() {
       }
     };
 
-    // Get initial user
-    getUser();
+    // Get initial session and user
+    getInitialSession();
 
-    // Listen for auth state changes
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event: string, session: Session | null) => {
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
+      async (event: string, newSession: Session | null) => {
+        if (!mounted) return;
+        
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
       }
     );
 
@@ -58,5 +60,5 @@ export function useAuth() {
     };
   }, [supabase]);
 
-  return { user, loading };
+  return { user, session, loading };
 }
