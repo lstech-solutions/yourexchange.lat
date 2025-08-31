@@ -11,10 +11,30 @@ if (fs.existsSync(path.join(process.cwd(), '.babelrc'))) {
 }
 
 const nextConfig = {
+    output: 'standalone',
     images: {
         domains: ['images.unsplash.com'],
     },
     transpilePackages: ['framer-motion'],
+    experimental: {
+        outputFileTracingRoot: path.join(__dirname, '../../'),
+        outputFileTracingExcludes: {
+            '*': [
+                'node_modules/@swc/core-linux-x64-gnu',
+                'node_modules/@swc/core-linux-x64-musl',
+                'node_modules/@esbuild/linux-x64',
+                'node_modules/next/dist/compiled/@next/swc-linux-x64-gnu',
+                'node_modules/next/dist/compiled/@next/swc-linux-x64-musl',
+                'node_modules/next/dist/compiled/webpack/bundle5.js',
+                'node_modules/next/dist/compiled/webpack/bundle5.js.map',
+                'node_modules/next/dist/compiled/webpack/webpack.js',
+                'node_modules/next/dist/compiled/webpack/FileSystemInfo.js',
+                'node_modules/next/dist/compiled/webpack/FileSystemInfo.js.map',
+                'node_modules/next/dist/compiled/webpack/LibraryTemplatePlugin.js',
+                'node_modules/next/dist/compiled/webpack/LibraryTemplatePlugin.js.map',
+            ],
+        },
+    },
     serverExternalPackages: ['@supabase/supabase-js'],
     webpack: (config, { isServer, dev }) => {
         // Ignore Deno-related files and imports
