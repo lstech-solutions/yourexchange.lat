@@ -14,6 +14,13 @@ export default async function Dashboard() {
     return redirect("/auth");
   }
 
+  // Get the full user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
   return (
     <>
       <DashboardNavbar />
@@ -21,11 +28,19 @@ export default async function Dashboard() {
         <div className="container mx-auto px-4 py-8 flex flex-col gap-8">
           {/* Header Section */}
           <header className="flex flex-col gap-4">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+              <div className="flex items-center gap-2">
+                <UserCircle className="w-6 h-6" />
+                <span className="font-medium">
+                  {profile?.full_name || user.email || 'User'}
+                </span>
+              </div>
+            </div>
             <div className="bg-secondary/50 text-sm p-3 px-4 rounded-lg text-muted-foreground flex gap-2 items-center">
               <InfoIcon size="14" />
               <span>
-                This is a protected page only visible to authenticated users
+                Welcome back! You're now signed in with {user.phone || 'your account'}
               </span>
             </div>
           </header>

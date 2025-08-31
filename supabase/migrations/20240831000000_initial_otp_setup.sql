@@ -1,8 +1,5 @@
--- Drop existing table if it exists
-DROP TABLE IF EXISTS public.otp_verifications CASCADE;
-
--- Create OTP verifications table
-CREATE TABLE public.otp_verifications (
+-- Create the otp_verifications table
+CREATE TABLE IF NOT EXISTS public.otp_verifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   phone_number TEXT NOT NULL,
   otp_code TEXT NOT NULL,
@@ -13,7 +10,8 @@ CREATE TABLE public.otp_verifications (
 );
 
 -- Create index for faster lookups
-CREATE INDEX idx_otp_verifications_phone_number ON public.otp_verifications(phone_number);
+CREATE INDEX idx_otp_verifications_phone_number 
+ON public.otp_verifications(phone_number);
 
 -- Create function to update updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
@@ -30,18 +28,30 @@ BEFORE UPDATE ON public.otp_verifications
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
 
--- Add RLS policies for security
-ALTER TABLE public.otp_verifications ENABLE ROW LEVEL SECURITY;
+-- Create the users table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone_number TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_login TIMESTAMPTZ
+);
 
--- Allow authenticated users to verify OTPs
-CREATE POLICY "Allow OTP verification"
-ON public.otp_verifications
-FOR SELECT
-TO authenticated
-USING (true);
+-- Create index for users table
+CREATE INDEX IF NOT EXISTS idx_users_phone_number 
+ON public.users(phone_number);
 
--- Allow service role to manage OTPs (for server-side use)
-CREATE POLICY "Allow service role access"
-ON public.otp_verifications
-USING (true)
-WITH CHECK (auth.role() = 'service_role');
+-- Create trigger for users.updated_at
+CREATE TRIGGER update_users_updated_at
+BEFORE UPDATE ON public.users
+FOR EACH ROW
+EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Grant necessary permissions
+GRANT ALL ON TABLE public.otp_verifications TO service_role;
+GRANT SELECT, INSERT, UPDATE ON public.otp_verifications TO anon, authenticated;
+
+GRANT ALL ON TABLE public.users TO service_role;
+GRANT SELECT, INSERT, UPDATE ON public.users TO anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.update_updated_at_column() TO service_role, anon, authenticated;

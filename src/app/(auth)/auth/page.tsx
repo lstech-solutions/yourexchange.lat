@@ -64,8 +64,19 @@ function AuthForm() {
         return;
       }
       
-      if (result?.success && result.redirectUrl) {
-        window.location.href = result.redirectUrl;
+      if (result?.success) {
+        setStep("verify");
+        setCountdown(60);
+        // Update URL without page reload
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('step', 'verify');
+        newUrl.searchParams.set('phone', encodeURIComponent(phoneNumber));
+        window.history.pushState({}, '', newUrl);
+        // Clear any previous errors
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.delete('error');
+        searchParams.delete('message');
+        window.history.replaceState({}, '', `${window.location.pathname}?${searchParams}`);
       }
     } catch (err) {
       console.error('Error sending OTP:', err);
@@ -104,7 +115,34 @@ function AuthForm() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
           {step === "phone" ? (
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+            <form 
+              action={async (formData) => {
+                try {
+                  setError("");
+                  setIsSubmitting(true);
+                  const result = await sendOtpAction(formData);
+                  
+                  if (result?.error) {
+                    throw new Error(result.error);
+                  }
+                  
+                  // Update URL without page reload
+                  const newUrl = new URL(window.location.href);
+                  newUrl.searchParams.set('step', 'verify');
+                  newUrl.searchParams.set('phone', encodeURIComponent(phoneNumber));
+                  window.history.pushState({}, '', newUrl);
+                  
+                  setStep("verify");
+                  setCountdown(60); // Start 60 second countdown
+                } catch (err) {
+                  console.error('Error sending OTP:', err);
+                  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }} 
+              className="flex flex-col space-y-6"
+            >
               <div className="space-y-2 text-center">
                 <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                   <Smartphone className="w-6 h-6 text-blue-600" />
@@ -154,7 +192,33 @@ function AuthForm() {
               <FormMessage message={message} />
             </form>
           ) : (
-            <form className="flex flex-col space-y-6">
+            <form 
+              action={async (formData) => {
+                try {
+                  setError("");
+                  const result = await verifyOtpAction(formData);
+                  
+                  // If we get here, the verification was successful
+                  // The server action should have set the session cookie
+                  if (result?.redirectTo) {
+                    // Force a page reload to ensure the session is picked up
+                    window.location.href = result.redirectTo;
+                    return;
+                  }
+                  
+                  throw new Error('Unexpected response from server');
+                } catch (err) {
+                  console.error('Verification error:', err);
+                  const errorMessage = err instanceof Error ? err.message : 'An error occurred during verification';
+                  setError(errorMessage);
+                  
+                  // Update URL to persist error message on refresh
+                  const newUrl = new URL(window.location.href);
+                  newUrl.searchParams.set('error', 'true');
+                  newUrl.searchParams.set('message', encodeURIComponent(errorMessage));
+                  window.history.replaceState({}, '', newUrl);
+                }
+            }} className="flex flex-col space-y-6">
               <div className="space-y-2 text-center">
                 <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
                   <Smartphone className="w-6 h-6 text-green-600" />
@@ -174,27 +238,48 @@ function AuthForm() {
                   <Label htmlFor="otp_code" className="text-sm font-medium">
                     Verification Code
                   </Label>
-                  <Input
-                    id="otp_code"
-                    name="otp_code"
-                    type="text"
-                    placeholder="123456"
-                    maxLength={6}
-                    pattern="[0-9]{6}"
-                    required
-                    className="w-full text-center text-2xl tracking-widest"
-                    autoComplete="one-time-code"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="otp_code"
+                      name="otp_code"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="123456"
+                      maxLength={6}
+                      pattern="[0-9]{6}"
+                      required
+                      className={`w-full text-center text-2xl tracking-widest ${error ? 'border-destructive' : ''}`}
+                      autoComplete="one-time-code"
+                      autoFocus
+                    />
+                    {error && (
+                      <div className="absolute -bottom-5 text-xs text-destructive">
+                        {error}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enter the 6-digit code sent to {phoneNumber}
+                  </p>
                 </div>
               </div>
 
-              <SubmitButton
-                formAction={verifyOtpAction}
-                pendingText="Verifying..."
-                className="w-full"
-              >
-                Verify Code
-              </SubmitButton>
+              <div className="space-y-2">
+                <SubmitButton
+                  type="submit"
+                  pendingText="Verifying..."
+                  className="w-full"
+                  disabled={!!error || isSubmitting}
+                >
+                  {isSubmitting ? 'Verifying...' : 'Verify Code'}
+                </SubmitButton>
+                
+                {isSubmitting && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Verifying your code. This may take a moment...
+                  </p>
+                )}
+              </div>
 
               <div className="flex flex-col space-y-2">
                 <Button
