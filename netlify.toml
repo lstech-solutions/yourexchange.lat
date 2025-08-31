@@ -13,7 +13,6 @@
   included_files = [
     ".netlify/functions-include.js"
   ]
-  node_bundler = "esbuild"
   directory = ".next/server/pages"
   
 # Disable function packaging for static assets
