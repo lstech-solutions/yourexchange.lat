@@ -1,7 +1,32 @@
 'use client'
 import Link from "next/link";
 import { ArrowUpRight, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import dynamic from 'next/dynamic';
+
+// Type for motion props
+interface MotionProps extends React.HTMLAttributes<HTMLElement> {
+  initial?: object;
+  animate?: object;
+  transition?: object;
+}
+
+const MotionDiv = dynamic<MotionProps>(
+  () => 
+    import('framer-motion').then((mod) => {
+      const MotionSpan = mod.motion.span;
+      return (props: MotionProps) => (
+        <MotionSpan 
+          initial={props.initial}
+          animate={props.animate}
+          transition={props.transition}
+          className={props.className}
+        >
+          {props.children}
+        </MotionSpan>
+      );
+    }),
+  { ssr: false }
+);
 import { useEffect, useState } from "react";
 
 export default function Hero() { 
@@ -29,7 +54,7 @@ export default function Hero() {
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8 tracking-tight">
               Send Money to{" "}
               <span className="">
-              <motion.span
+              <MotionDiv
                 key={currentTitleIndex}
                 className="inline-block"
                 initial={{ opacity: 0, y: -10 }}
@@ -37,7 +62,7 @@ export default function Hero() {
                 transition={{ duration: 0.5 }}
               >
                 {titles[currentTitleIndex]}
-              </motion.span>
+              </MotionDiv>
               </span>{" "}
             </h1>
 

@@ -5,7 +5,7 @@
     "build": "next build",
     "start": "next start"
   },
-  "version": "0.0.8",
+  "version": "0.0.9",
   "dependencies": {
     "@netlify/plugin-nextjs": "5.12.1",
     "@radix-ui/react-accordion": "1.2.3",
@@ -22,14 +22,14 @@
     "@sentry/nextjs": "10.8.0",
     "@supabase/auth-helpers-nextjs": "0.10.0",
     "@supabase/functions-js": "2.4.5",
-    "@supabase/ssr": "2.4.5",
-    "@supabase/supabase-js": "2.39.0",
+    "@supabase/ssr": "^0.4.0",
+    "@supabase/supabase-js": "^2.39.8",
     "autoprefixer": "10.4.20",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",
     "cmdk": "1.0.4",
     "embla-carousel-react": "8.5.2",
-    "framer-motion": "11.0.0",
+    "framer-motion": "^10.16.4",
     "lucide-react": "0.468.0",
     "next": "15.5.2",
     "next-themes": "0.2.1",
@@ -45,12 +45,12 @@
     "vaul": "1.1.2"
   },
   "engines": {
-    "node": "22.19.0" 
+    "node": "22.19.0"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "2.39.0",
+    "@supabase/supabase-js": "^2.39.8",
     "@types/deno": "2.3.0",
-    "@types/node": "20.19.11",
+    "@types/node": "^20.19.11",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.1",
     "ignore-loader": "0.1.2",

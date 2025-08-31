@@ -54,8 +54,6 @@ const nextConfig = {
         // Disable source maps in production
         productionBrowserSourceMaps: false,
     },
-    // Enable SWC minification
-    swcMinify: true,
     // Disable X-Powered-By header
     poweredByHeader: false,
     // Enable compression
