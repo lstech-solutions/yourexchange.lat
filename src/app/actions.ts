@@ -147,6 +147,42 @@ type VerifyOtpResponse = {
   redirectTo?: string;
 };
 
+type ResetPasswordState = {
+  error?: string;
+  success?: boolean;
+  message?: string;
+};
+
+export const resetPasswordAction = async (formData: FormData) => {
+  const password = formData.get('password')?.toString();
+  const confirmPassword = formData.get('confirmPassword')?.toString();
+  const supabase = createClientComponent();
+
+  if (!password || !confirmPassword) {
+    return { error: 'All fields are required' };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: 'Passwords do not match' };
+  }
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: password
+    });
+
+    if (error) {
+      console.error('Error updating password:', error);
+      return { error: error.message };
+    }
+
+    return { success: 'Password updated successfully' } as const;
+  } catch (error) {
+    console.error('Error in reset password:', error);
+    return { error: error instanceof Error ? error.message : 'An error occurred while resetting your password' } as const;
+  }
+};
+
 export const verifyOtpAction = async (formData: FormData): Promise<VerifyOtpResponse> => {
   const phoneNumber = formData.get("phone_number")?.toString();
   const otpCode = formData.get("otp_code")?.toString();
