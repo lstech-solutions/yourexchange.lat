@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "types": ["deno-types"]
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --watch index.ts"
+  }
+}

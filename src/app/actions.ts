@@ -6,7 +6,7 @@ import { createClient } from "../../supabase/server";
 
 export const sendOtpAction = async (formData: FormData) => {
   const phoneNumber = formData.get("phone_number")?.toString();
-  const supabase = await createClient();
+  const supabase = createClient();
 
   if (!phoneNumber) {
     return { error: "Phone number is required" };
@@ -19,26 +19,61 @@ export const sendOtpAction = async (formData: FormData) => {
   }
 
   try {
-    const { error } = await supabase.functions.invoke(
-      "supabase-functions-send-otp",
-      {
-        body: { phoneNumber },
-      },
-    );
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // OTP valid for 10 minutes
 
-    if (error) {
-      console.error("OTP sending error:", error);
+    // Store the OTP in the database
+    const { error: otpError } = await supabase
+      .from('otp_verifications')
+      .upsert({
+        phone_number: phoneNumber,
+        otp_code: otp,
+        expires_at: expiresAt.toISOString(),
+        verified: false
+      });
+
+    if (otpError) {
+      console.error("Error storing OTP:", otpError);
+      return { error: "Failed to initiate verification. Please try again." };
+    }
+
+    // Call Brevo to send the OTP via SMS
+    const brevoResponse = await fetch('https://api.brevo.com/v3/transactionalSMS/sms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY || '',
+      },
+      body: JSON.stringify({
+        sender: 'Yourexchange',
+        recipient: phoneNumber,
+        content: `Yourexchange verification code is: ${otp}. Valid for 10 minutes.`,
+        type: 'transactional',
+        tag: 'otp',
+      }),
+    });
+
+    if (!brevoResponse.ok) {
+      const error = await brevoResponse.json();
+      console.error("Error sending SMS via Brevo:", error);
+      return { error: "Failed to send verification code. Please try again." };
+    }
+
+    if (otpError) {
+      console.error("OTP sending error:", otpError);
       return { error: "Failed to send OTP. Please try again." };
     }
 
-    // Return success state instead of redirecting
+    // Return success state
     return { 
       success: true, 
       message: "OTP sent successfully! Please check your phone.",
       redirectUrl: `/auth?step=verify&phone=${encodeURIComponent(phoneNumber)}`
     };
   } catch (err) {
-    console.error("Error sending OTP:", err);
+    console.error("Error in send OTP flow:", err);
     return { error: "An unexpected error occurred. Please try again." };
   }
 };
@@ -50,63 +85,90 @@ export const verifyOtpAction = async (formData: FormData) => {
   if (!phoneNumber || !otpCode) {
     return encodedRedirect(
       "error",
-      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber || ""),
+      `/auth?step=verify&phone=${encodeURIComponent(phoneNumber || "")}`,
       "Phone number and OTP code are required"
     );
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
     
-    // Verify the OTP with the server
-    const { data, error } = await supabase.functions.invoke(
-      "supabase-functions-verify-otp",
-      {
-        body: { phoneNumber, otpCode },
-      },
-    );
+    console.log('Verifying OTP for phone:', phoneNumber);
+    
+    // Check if the OTP is valid and not expired
+    const { data: otpData, error: otpError } = await supabase
+      .from('otp_verifications')
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .eq('otp_code', otpCode)
+      .eq('verified', false)
+      .gt('expires_at', new Date().toISOString())
+      .single();
 
-    if (error || !data?.success) {
-      console.error("OTP verification error:", error);
+    if (otpError || !otpData) {
+      console.error("Invalid or expired OTP:", otpError);
       return encodedRedirect(
         "error",
-        "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-        data?.error || "Invalid or expired OTP. Please try again."
+        `/auth?step=verify&phone=${encodeURIComponent(phoneNumber)}`,
+        "Invalid or expired verification code. Please request a new one."
       );
     }
 
-    // If we have a valid session from the OTP verification
-    if (data.session) {
-      // Set the session in the client
-      const { error: authError } = await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      });
+    // Mark OTP as used
+    await supabase
+      .from('otp_verifications')
+      .update({ verified: true })
+      .eq('id', otpData.id);
 
-      if (authError) {
-        console.error("Error setting session:", authError);
-        return encodedRedirect(
-          "error",
-          "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-          "Failed to authenticate. Please try again."
-        );
-      }
+    // Check if user exists, if not create a new user
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone_number', phoneNumber)
+      .single();
 
-      // Redirect to the dashboard on successful verification
-      return redirect("/dashboard");
+    if (userError && userError.code !== 'PGRST116') { // PGRST116 is 'not found' error
+      console.error("Error checking user:", userError);
+      return encodedRedirect(
+        "error",
+        `/auth?step=verify&phone=${encodeURIComponent(phoneNumber)}`,
+        "Error verifying your account. Please try again."
+      );
     }
 
-    // If we get here, the verification was successful but no session was returned
+    let userId = userData?.id;
+    
+    // Create user if doesn't exist
+    if (!userId) {
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          phone_number: phoneNumber,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+      
+      if (createError || !newUser) {
+        console.error("Error creating user:", createError);
+        return encodedRedirect(
+          "error",
+          `/auth?step=verify&phone=${encodeURIComponent(phoneNumber)}`,
+          "Error creating your account. Please try again."
+        );
+      }
+      userId = newUser.id;
+    }
+
+    console.log('OTP verification successful for phone:', phoneNumber);
+    return redirect("/dashboard");
+    
+  } catch (error) {
+    console.error("Error in verifyOtpAction:", error);
     return encodedRedirect(
       "error",
-      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-      "Verification successful but unable to create session. Please try again."
-    );
-  } catch (err) {
-    console.error("Error in verifyOtpAction:", err);
-    return encodedRedirect(
-      "error",
-      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber || ""),
+      `/auth?step=verify&phone=${encodeURIComponent(phoneNumber || "")}`,
       "An unexpected error occurred. Please try again."
     );
   }

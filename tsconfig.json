@@ -17,14 +17,16 @@
     "plugins": [{"name": "next"}],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["node", "@types/node"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "next.config.js"
+    "next.config.js",
+    "supabase/functions/**/*.ts"
   ],
   "exclude": [
     "node_modules",

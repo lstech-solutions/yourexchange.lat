@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "@types/node", "deno"],
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "target": "esnext"
+  },
+  "include": [
+    "supabase/functions/**/*.ts",
+    "supabase/functions/**/*.tsx"
+  ]
+}
