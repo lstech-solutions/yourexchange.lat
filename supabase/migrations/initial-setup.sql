@@ -11,8 +11,30 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at timestamp with time zone,
     email text,
     name text,
-    full_name text
+    full_name text,
+    phone_number text UNIQUE
 );
+
+-- Create index for phone number
+CREATE INDEX IF NOT EXISTS idx_users_phone_number ON public.users(phone_number);
+
+-- Create OTP verification table
+CREATE TABLE IF NOT EXISTS public.otp_verifications (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    phone_number text NOT NULL,
+    otp_code text NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    verified boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())
+);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_otp_phone_number ON public.otp_verifications(phone_number);
+CREATE INDEX IF NOT EXISTS idx_otp_expires_at ON public.otp_verifications(expires_at);
+
+-- Enable realtime
+alter publication supabase_realtime add table otp_verifications;
 
 -- Add RLS (Row Level Security) policies
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;

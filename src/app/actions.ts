@@ -1,7 +1,6 @@
 "use server";
 
 import { encodedRedirect } from "@/utils/utils";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "../../supabase/server";
 
@@ -10,21 +9,17 @@ export const sendOtpAction = async (formData: FormData) => {
   const supabase = await createClient();
 
   if (!phoneNumber) {
-    return encodedRedirect("error", "/auth", "Phone number is required");
+    return { error: "Phone number is required" };
   }
 
   // Validate phone number format (basic validation)
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
   if (!phoneRegex.test(phoneNumber)) {
-    return encodedRedirect(
-      "error",
-      "/auth",
-      "Please enter a valid phone number",
-    );
+    return { error: "Please enter a valid phone number" };
   }
 
   try {
-    const { data, error } = await supabase.functions.invoke(
+    const { error } = await supabase.functions.invoke(
       "supabase-functions-send-otp",
       {
         body: { phoneNumber },
@@ -33,25 +28,18 @@ export const sendOtpAction = async (formData: FormData) => {
 
     if (error) {
       console.error("OTP sending error:", error);
-      return encodedRedirect(
-        "error",
-        "/auth",
-        "Failed to send OTP. Please try again.",
-      );
+      return { error: "Failed to send OTP. Please try again." };
     }
 
-    return encodedRedirect(
-      "success",
-      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-      "OTP sent successfully! Please check your phone.",
-    );
+    // Return success state instead of redirecting
+    return { 
+      success: true, 
+      message: "OTP sent successfully! Please check your phone.",
+      redirectUrl: `/auth?step=verify&phone=${encodeURIComponent(phoneNumber)}`
+    };
   } catch (err) {
     console.error("Error sending OTP:", err);
-    return encodedRedirect(
-      "error",
-      "/auth",
-      "Failed to send OTP. Please try again.",
-    );
+    return { error: "An unexpected error occurred. Please try again." };
   }
 };
 
