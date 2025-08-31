@@ -5,7 +5,7 @@ const nextConfig = {
   // Enable React strict mode
   reactStrictMode: true,
   
-  // Configure webpack
+  // Webpack configuration
   webpack: (config, { isServer, dev }) => {
     // Add custom webpack configurations
     config.resolve = {
@@ -17,12 +17,44 @@ const nextConfig = {
         '@/components': path.resolve(__dirname, './src/components'),
       },
     };
+    
+    // Add any additional webpack configurations here
+    if (!isServer) {
+      // Client-side only configurations
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
     return config;
   },
   
-  // Enable server components external packages
+  // Output standalone for Docker support
+  output: 'standalone',
+  
+  // Transpile required packages
+  transpilePackages: [
+    '@radix-ui/*', 
+    'class-variance-authority', 
+    'clsx', 
+    'tailwind-merge',
+    'framer-motion',
+    'lucide-react'
+  ],
+  
+  // Image optimization
+  images: {
+    domains: ['images.unsplash.com'],
+    unoptimized: true, // Disable Image Optimization API
+  },
+  
+  // Experimental features
   experimental: {
     externalDir: true,
+    outputFileTracingRoot: path.join(__dirname, '../../'),
     serverComponentsExternalPackages: [
       '@radix-ui/*', 
       'class-variance-authority', 
@@ -31,23 +63,11 @@ const nextConfig = {
       'framer-motion',
       'lucide-react'
     ],
-  },
-    output: 'standalone',
-    transpilePackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
-    images: {
-        domains: ['images.unsplash.com'],
-        unoptimized: true, // Disable Image Optimization API
-    },
-    experimental: {
-        outputFileTracingRoot: path.join(__dirname, '../../'),
-        // Enable experimental features for better module resolution
-        externalDir: true,
-        serverComponentsExternalPackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
-        outputFileTracingExcludes: {
-            '*': [
-                '**/.git/**',
-                '**/.next/**',
-                '**/node_modules/**',
+    outputFileTracingExcludes: {
+      '*': [
+        '**/.git/**',
+        '**/.next/**',
+        '**/node_modules/**',
                 '**/.cache/**',
                 '**/cypress/**',
                 '**/test/**',
