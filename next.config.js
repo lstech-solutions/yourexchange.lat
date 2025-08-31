@@ -18,6 +18,7 @@ const nextConfig = {
     },
     transpilePackages: [],
     experimental: {
+        serverExternalPackages: ['@supabase/supabase-js', '@supabase/auth-helpers-nextjs'],
         outputFileTracingRoot: path.join(__dirname, '../../'),
         outputFileTracingExcludes: {
             '*': [
