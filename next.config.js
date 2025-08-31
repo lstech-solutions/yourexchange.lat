@@ -33,7 +33,7 @@ const nextConfig = {
   },
   
   // Output standalone for Docker support
-  output: 'standalone',
+  output: 'export',
   
   // Transpile required packages
   transpilePackages: [
