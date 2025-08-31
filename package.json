@@ -5,7 +5,7 @@
     "build": "next build",
     "start": "next start"
   },
-  "version": "0.0.3",
+  "version": "0.0.4",
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.12.1",
     "@radix-ui/react-accordion": "^1.2.3",
