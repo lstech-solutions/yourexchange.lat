@@ -31,16 +31,16 @@ export default async function Navbar() {
           ) : (
             <>
               <Link
-                href="/sign-in"
+                href="/auth"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
                 Sign In
               </Link>
               <Link
-                href="/sign-up"
+                href="/auth"
                 className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800"
               >
-                Sign Up
+                Get Started
               </Link>
             </>
           )}

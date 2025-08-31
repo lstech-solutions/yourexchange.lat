@@ -5,160 +5,140 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "../../supabase/server";
 
-export const signUpAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
-  const fullName = formData.get("full_name")?.toString() || '';
+export const sendOtpAction = async (formData: FormData) => {
+  const phoneNumber = formData.get("phone_number")?.toString();
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
 
-  if (!email || !password) {
+  if (!phoneNumber) {
+    return encodedRedirect("error", "/auth", "Phone number is required");
+  }
+
+  // Validate phone number format (basic validation)
+  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+  if (!phoneRegex.test(phoneNumber)) {
     return encodedRedirect(
       "error",
-      "/sign-up",
-      "Email and password are required",
+      "/auth",
+      "Please enter a valid phone number",
     );
   }
 
-  const { data: { user }, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      data: {
-        full_name: fullName,
-        email: email,
-      }
-    },
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke(
+      "supabase-functions-send-otp",
+      {
+        body: { phoneNumber },
+      },
+    );
 
-  console.log("After signUp", error);
+    if (error) {
+      console.error("OTP sending error:", error);
+      return encodedRedirect(
+        "error",
+        "/auth",
+        "Failed to send OTP. Please try again.",
+      );
+    }
 
+    return encodedRedirect(
+      "success",
+      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
+      "OTP sent successfully! Please check your phone.",
+    );
+  } catch (err) {
+    console.error("Error sending OTP:", err);
+    return encodedRedirect(
+      "error",
+      "/auth",
+      "Failed to send OTP. Please try again.",
+    );
+  }
+};
 
-  if (error) {
-    console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
+export const verifyOtpAction = async (formData: FormData) => {
+  const phoneNumber = formData.get("phone_number")?.toString();
+  const otpCode = formData.get("otp_code")?.toString();
+  const supabase = await createClient();
+
+  if (!phoneNumber || !otpCode) {
+    return encodedRedirect(
+      "error",
+      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber || ""),
+      "Phone number and OTP code are required",
+    );
   }
 
-  if (user) {
-    try {
-      const { error: updateError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          name: fullName,
-          full_name: fullName,
-          email: email,
-          user_id: user.id,
-          token_identifier: user.id,
-          created_at: new Date().toISOString()
+  try {
+    const { data, error } = await supabase.functions.invoke(
+      "supabase-functions-verify-otp",
+      {
+        body: { phoneNumber, otpCode },
+      },
+    );
+
+    if (error || !data?.success) {
+      console.error("OTP verification error:", error);
+      return encodedRedirect(
+        "error",
+        "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
+        data?.error || "Invalid or expired OTP. Please try again.",
+      );
+    }
+
+    // If verification successful, sign in the user using the magic link
+    if (data.session?.properties?.action_link) {
+      // Extract the tokens from the action link
+      const url = new URL(data.session.properties.action_link);
+      const accessToken = url.searchParams.get("access_token");
+      const refreshToken = url.searchParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
         });
 
-      if (updateError) {
-        console.error('Error updating user profile:', updateError);
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          return encodedRedirect(
+            "error",
+            "/auth",
+            "Failed to create session. Please try again.",
+          );
+        }
       }
-    } catch (err) {
-      console.error('Error in user profile creation:', err);
     }
-  }
 
-  return encodedRedirect(
-    "success",
-    "/sign-up",
-    "Thanks for signing up! Please check your email for a verification link.",
-  );
-};
-
-export const signInAction = async (formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const supabase = await createClient();
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
-  }
-
-  return redirect("/dashboard");
-};
-
-export const forgotPasswordAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
-  const callbackUrl = formData.get("callbackUrl")?.toString();
-
-  if (!email) {
-    return encodedRedirect("error", "/forgot-password", "Email is required");
-  }
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?redirect_to=/protected/reset-password`,
-  });
-
-  if (error) {
-    console.error(error.message);
+    return redirect("/dashboard");
+  } catch (err) {
+    console.error("Error verifying OTP:", err);
     return encodedRedirect(
       "error",
-      "/forgot-password",
-      "Could not reset password",
+      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
+      "Failed to verify OTP. Please try again.",
     );
   }
-
-  if (callbackUrl) {
-    return redirect(callbackUrl);
-  }
-
-  return encodedRedirect(
-    "success",
-    "/forgot-password",
-    "Check your email for a link to reset your password.",
-  );
-};
-
-export const resetPasswordAction = async (formData: FormData) => {
-  const supabase = await createClient();
-
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
-
-  if (!password || !confirmPassword) {
-    encodedRedirect(
-      "error",
-      "/protected/reset-password",
-      "Password and confirm password are required",
-    );
-  }
-
-  if (password !== confirmPassword) {
-    encodedRedirect(
-      "error",
-      "/dashboard/reset-password",
-      "Passwords do not match",
-    );
-  }
-
-  const { error } = await supabase.auth.updateUser({
-    password: password,
-  });
-
-  if (error) {
-    encodedRedirect(
-      "error",
-      "/dashboard/reset-password",
-      "Password update failed",
-    );
-  }
-
-  encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return redirect("/sign-in");
+  return redirect("/auth");
+};
+
+// Legacy actions for backward compatibility
+export const signUpAction = async (formData: FormData) => {
+  return redirect("/auth");
+};
+
+export const signInAction = async (formData: FormData) => {
+  return redirect("/auth");
+};
+
+export const forgotPasswordAction = async (formData: FormData) => {
+  return redirect("/auth");
+};
+
+export const resetPasswordAction = async (formData: FormData) => {
+  return redirect("/auth");
 };

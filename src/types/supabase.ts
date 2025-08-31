@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      otp_verifications: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          otp_code: string
+          phone_number: string
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          otp_code: string
+          phone_number: string
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          phone_number?: string
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -23,6 +53,7 @@ export type Database = {
           id: string
           image: string | null
           name: string | null
+          phone_number: string | null
           token_identifier: string
           updated_at: string | null
           user_id: string | null
@@ -35,6 +66,7 @@ export type Database = {
           id: string
           image?: string | null
           name?: string | null
+          phone_number?: string | null
           token_identifier: string
           updated_at?: string | null
           user_id?: string | null
@@ -47,6 +79,7 @@ export type Database = {
           id?: string
           image?: string | null
           name?: string | null
+          phone_number?: string | null
           token_identifier?: string
           updated_at?: string | null
           user_id?: string | null
@@ -58,7 +91,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_otps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
