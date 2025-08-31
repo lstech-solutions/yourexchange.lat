@@ -46,17 +46,19 @@ export const sendOtpAction = async (formData: FormData) => {
 export const verifyOtpAction = async (formData: FormData) => {
   const phoneNumber = formData.get("phone_number")?.toString();
   const otpCode = formData.get("otp_code")?.toString();
-  const supabase = await createClient();
-
+  
   if (!phoneNumber || !otpCode) {
     return encodedRedirect(
       "error",
       "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber || ""),
-      "Phone number and OTP code are required",
+      "Phone number and OTP code are required"
     );
   }
 
   try {
+    const supabase = await createClient();
+    
+    // Verify the OTP with the server
     const { data, error } = await supabase.functions.invoke(
       "supabase-functions-verify-otp",
       {
@@ -69,41 +71,43 @@ export const verifyOtpAction = async (formData: FormData) => {
       return encodedRedirect(
         "error",
         "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-        data?.error || "Invalid or expired OTP. Please try again.",
+        data?.error || "Invalid or expired OTP. Please try again."
       );
     }
 
-    // If verification successful, sign in the user using the magic link
-    if (data.session?.properties?.action_link) {
-      // Extract the tokens from the action link
-      const url = new URL(data.session.properties.action_link);
-      const accessToken = url.searchParams.get("access_token");
-      const refreshToken = url.searchParams.get("refresh_token");
+    // If we have a valid session from the OTP verification
+    if (data.session) {
+      // Set the session in the client
+      const { error: authError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
 
-      if (accessToken && refreshToken) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          return encodedRedirect(
-            "error",
-            "/auth",
-            "Failed to create session. Please try again.",
-          );
-        }
+      if (authError) {
+        console.error("Error setting session:", authError);
+        return encodedRedirect(
+          "error",
+          "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
+          "Failed to authenticate. Please try again."
+        );
       }
+
+      // Redirect to the dashboard on successful verification
+      return redirect("/dashboard");
     }
 
-    return redirect("/dashboard");
-  } catch (err) {
-    console.error("Error verifying OTP:", err);
+    // If we get here, the verification was successful but no session was returned
     return encodedRedirect(
       "error",
       "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber),
-      "Failed to verify OTP. Please try again.",
+      "Verification successful but unable to create session. Please try again."
+    );
+  } catch (err) {
+    console.error("Error in verifyOtpAction:", err);
+    return encodedRedirect(
+      "error",
+      "/auth?step=verify&phone=" + encodeURIComponent(phoneNumber || ""),
+      "An unexpected error occurred. Please try again."
     );
   }
 };
