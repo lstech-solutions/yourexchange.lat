@@ -14,9 +14,6 @@
 # Configure build plugins
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    buildCommand = "npm run build"
-    publish = ".next"
 
 [functions]
   node_bundler = "esbuild"
