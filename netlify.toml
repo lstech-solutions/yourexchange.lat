@@ -1,7 +1,13 @@
 [build]
   command = "npm run build"
   publish = ".next"
-  environment = { NODE_VERSION = "22.19.0" }
+  
+[build.environment]
+  NODE_VERSION = "22.19.0"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"  # We're handling the build manually
+  NEXT_TELEMETRY_DISABLED = "1"      # Disable Next.js telemetry
+  NODE_ENV = "production"            # Ensure production mode
+  NEXT_PRIVATE_TARGET = "server"     # Target server for Next.js
 
 [functions]
   node_bundler = "esbuild"
@@ -25,12 +31,6 @@
   package = "@netlify/plugin-nextjs"
   # The plugin handles Next.js configuration automatically
   # No custom inputs are needed as they're not supported by this plugin
-
-[build.environment]
-  NETLIFY_NEXT_PLUGIN_SKIP = "true"  # We're handling the build manually
-  NEXT_TELEMETRY_DISABLED = "1"      # Disable Next.js telemetry
-  NODE_ENV = "production"            # Ensure production mode
-  NEXT_PRIVATE_TARGET = "server"     # Target server for Next.js
 
 # Disable Edge Functions as we're using Next.js middleware
 [dev]
