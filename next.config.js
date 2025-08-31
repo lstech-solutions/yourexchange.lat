@@ -12,6 +12,7 @@ if (fs.existsSync(path.join(process.cwd(), '.babelrc'))) {
 
 const nextConfig = {
     output: 'standalone',
+    transpilePackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
     images: {
         domains: ['images.unsplash.com'],
         unoptimized: true, // Disable Image Optimization API
