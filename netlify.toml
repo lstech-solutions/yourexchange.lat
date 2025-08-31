@@ -37,12 +37,6 @@
   ]
   directory = ".next/server/pages"
 
-# Enable Next.js plugin
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  # The plugin handles Next.js configuration automatically
-  # No custom inputs are needed as they're not supported by this plugin
-
 # Disable Edge Functions as we're using Next.js middleware
 [dev]
   framework = "next"
