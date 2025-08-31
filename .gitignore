@@ -1,5 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Supabase
+/supabase/functions/*
+!/supabase/functions/.gitkeep
+/supabase/.temp
+/supabase/.windsurf
+/supabase-functions/
+
 # dependencies
 /node_modules
 /.pnp
