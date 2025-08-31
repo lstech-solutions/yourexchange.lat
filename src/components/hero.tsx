@@ -39,12 +39,11 @@ export default function Hero() {
                 {titles[currentTitleIndex]}
               </motion.span>
               </span>{" "}
-              Instantly
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
               Transfer USDC/USDT on zkEVM to Colombian recipients by phone
-              number. Recipients can hold stablecoins or cash out to Colombian, Venezuelan, and Argentine Pesos instantly.
+              number. Recipients can hold stablecoins or cash out to Colombian, Venezuelan, and Argentine Pesos.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

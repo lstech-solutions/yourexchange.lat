@@ -1,15 +1,26 @@
+'use client';
+
 import Link from "next/link";
-import { createClient } from "../../supabase/server";
 import { Button } from "./ui/button";
-import { User, UserCircle } from "lucide-react";
 import UserProfile from "./user-profile";
+import { useAuth } from "@/hooks/use-auth";
 
-export default async function Navbar() {
-  const supabase = await createClient();
+export default function Navbar() {
+  const { user, loading } = useAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (loading) {
+    return (
+      <nav className="w-full border-b border-gray-200 bg-white py-2">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
+          <div className="flex gap-4">
+            <div className="h-10 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+            <div className="h-10 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-2">
