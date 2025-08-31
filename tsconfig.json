@@ -16,8 +16,7 @@
     "incremental": true,
     "plugins": [{"name": "next"}],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
+      "@/*": ["./src/*"]
     },
     "types": ["node", "@types/node"]
   },
