@@ -12,7 +12,9 @@ package = "@netlify/plugin-nextjs"
 
 [build.environment]
   NEXT_PRIVATE_TARGET = "server"
+  # Disable Edge Functions as we're using Next.js middleware
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
-[[edge_functions]]
-  function = "middleware"
-  path = "/*"
+# Disable Edge Functions as we're using Next.js middleware
+[dev]
+  framework = "next"
