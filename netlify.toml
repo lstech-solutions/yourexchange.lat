@@ -1,6 +1,10 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  environment = { NODE_VERSION = "22.19.0" }
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
 
 [functions]
   node_bundler = "esbuild"
@@ -8,7 +12,11 @@
     "@supabase/functions-js", 
     "@supabase/supabase-js",
     "@supabase/auth-helpers-nextjs",
-    "@supabase/ssr"
+    "@supabase/ssr",
+    "@radix-ui/*",
+    "class-variance-authority",
+    "clsx",
+    "tailwind-merge"
   ]
   included_files = [
     ".netlify/functions-include.js"
