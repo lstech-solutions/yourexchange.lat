@@ -29,9 +29,6 @@
   NODE_ENV = "production"            # Ensure production mode
   NEXT_PRIVATE_TARGET = "server"     # Target server for Next.js
 
-[[plugins]]
-package = "@netlify/plugin-nextjs"
-
 # Disable Edge Functions as we're using Next.js middleware
 [dev]
   framework = "next"
