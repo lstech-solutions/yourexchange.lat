@@ -16,9 +16,8 @@ const nextConfig = {
         domains: ['images.unsplash.com'],
         unoptimized: true, // Disable Image Optimization API
     },
-    transpilePackages: [],
+    transpilePackages: ['@supabase/supabase-js', '@supabase/auth-helpers-nextjs'],
     experimental: {
-        serverExternalPackages: ['@supabase/supabase-js', '@supabase/auth-helpers-nextjs'],
         outputFileTracingRoot: path.join(__dirname, '../../'),
         outputFileTracingExcludes: {
             '*': [
