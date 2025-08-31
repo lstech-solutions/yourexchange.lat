@@ -5,7 +5,6 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { sendOtpAction, verifyOtpAction } from "@/app/actions";
 import Navbar from "@/components/navbar";
 import { useSearchParams } from "next/navigation";
