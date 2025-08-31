@@ -40,7 +40,6 @@
 # Enable Next.js plugin
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  package = "@netlify/plugin-nextjs"
   # The plugin handles Next.js configuration automatically
   # No custom inputs are needed as they're not supported by this plugin
 
