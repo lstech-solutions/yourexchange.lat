@@ -4,10 +4,10 @@ const path = require('path');
 // Remove the custom babel config since we'll use SWC
 const fs = require('fs');
 if (fs.existsSync(path.join(process.cwd(), '.babelrc'))) {
-  fs.renameSync(
-    path.join(process.cwd(), '.babelrc'),
-    path.join(process.cwd(), '.babelrc.bak')
-  );
+    fs.renameSync(
+        path.join(process.cwd(), '.babelrc'),
+        path.join(process.cwd(), '.babelrc.bak')
+    );
 }
 
 const nextConfig = {
@@ -58,14 +58,12 @@ const nextConfig = {
     compress: true,
     // Optimize package imports
     experimental: {
-        optimizePackageImports: ['@supabase/supabase-js', '@supabase/auth-helpers-nextjs']
+        optimizePackageImports: ['@supabase/ssr', 'framer-motion']
     },
     // Externalize large dependencies
     serverExternalPackages: [
         '@supabase/supabase-js',
         '@supabase/auth-helpers-nextjs',
-        '@supabase/ssr',
-        'framer-motion'
     ],
     webpack: (config, { isServer, dev }) => {
         // Ignore Deno-related files and imports
@@ -82,11 +80,11 @@ const nextConfig = {
                 checkResource(resource) {
                     // Skip in development to avoid excessive logging
                     if (dev) return false;
-                    
-                    const isSupabaseFunction = 
-                        resource.includes('supabase-functions') || 
+
+                    const isSupabaseFunction =
+                        resource.includes('supabase-functions') ||
                         resource.includes('supabase/functions');
-                        
+
                     if (isSupabaseFunction) {
                         console.log('Ignoring Supabase function:', resource);
                         return true;
@@ -95,7 +93,7 @@ const nextConfig = {
                 }
             })
         );
-        
+
         // Exclude supabase functions from TypeScript/JavaScript processing
         config.module.rules.push({
             test: /\.(ts|tsx|js|jsx)$/,
@@ -118,7 +116,7 @@ const nextConfig = {
                 worker_threads: false,
             };
         }
-        
+
         return config;
     },
 };
