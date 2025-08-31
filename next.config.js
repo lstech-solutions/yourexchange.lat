@@ -14,28 +14,60 @@ const nextConfig = {
     output: 'standalone',
     images: {
         domains: ['images.unsplash.com'],
+        unoptimized: true, // Disable Image Optimization API
     },
     transpilePackages: ['framer-motion'],
     experimental: {
         outputFileTracingRoot: path.join(__dirname, '../../'),
         outputFileTracingExcludes: {
             '*': [
-                'node_modules/@swc/core-linux-x64-gnu',
-                'node_modules/@swc/core-linux-x64-musl',
-                'node_modules/@esbuild/linux-x64',
-                'node_modules/next/dist/compiled/@next/swc-linux-x64-gnu',
-                'node_modules/next/dist/compiled/@next/swc-linux-x64-musl',
-                'node_modules/next/dist/compiled/webpack/bundle5.js',
-                'node_modules/next/dist/compiled/webpack/bundle5.js.map',
-                'node_modules/next/dist/compiled/webpack/webpack.js',
-                'node_modules/next/dist/compiled/webpack/FileSystemInfo.js',
-                'node_modules/next/dist/compiled/webpack/FileSystemInfo.js.map',
-                'node_modules/next/dist/compiled/webpack/LibraryTemplatePlugin.js',
-                'node_modules/next/dist/compiled/webpack/LibraryTemplatePlugin.js.map',
+                '**/.git/**',
+                '**/.next/**',
+                '**/node_modules/**',
+                '**/.cache/**',
+                '**/cypress/**',
+                '**/test/**',
+                '**/tests/**',
+                '**/__tests__/**',
+                '**/coverage/**',
+                '**/dist/**',
+                '**/build/**',
+                '**/.vercel/**',
+                '**/.netlify/**',
+                '**/CHANGELOG.md',
+                '**/*.md',
+                '**/*.mdx',
+                '**/*.test.ts',
+                '**/*.test.js',
+                '**/*.spec.ts',
+                '**/*.spec.js',
+                '**/tsconfig.json',
+                '**/tsconfig.*.json',
+                '**/next-env.d.ts',
             ],
         },
+        // Enable granular chunks for better caching
+        granularChunks: true,
+        // Disable source maps in production
+        productionBrowserSourceMaps: false,
     },
-    serverExternalPackages: ['@supabase/supabase-js'],
+    // Enable SWC minification
+    swcMinify: true,
+    // Disable X-Powered-By header
+    poweredByHeader: false,
+    // Enable compression
+    compress: true,
+    // Optimize package imports
+    experimental: {
+        optimizePackageImports: ['@supabase/supabase-js', '@supabase/auth-helpers-nextjs']
+    },
+    // Externalize large dependencies
+    serverExternalPackages: [
+        '@supabase/supabase-js',
+        '@supabase/auth-helpers-nextjs',
+        '@supabase/ssr',
+        'framer-motion'
+    ],
     webpack: (config, { isServer, dev }) => {
         // Ignore Deno-related files and imports
         const { IgnorePlugin } = require('webpack');
