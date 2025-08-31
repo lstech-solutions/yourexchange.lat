@@ -3,9 +3,11 @@
 const nextConfig = {
     images: {
         domains: ['images.unsplash.com'],
+    },
+    transpilePackages: ['framer-motion'],
+    experimental: {
+        esmExternals: 'loose'
     }
 };
 
-
-
-module.exports = nextConfig;
+export default nextConfig;

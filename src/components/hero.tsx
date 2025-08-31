@@ -1,10 +1,26 @@
+'use client'
 import Link from "next/link";
 import { ArrowUpRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
-export default function Hero() {
+export default function Hero() { 
+  const titles = ["+57 🇨🇴", "+58 🇻🇪", "+54 🇦🇷"];
+  const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setCurrentTitleIndex((prev) => (prev + 1) % titles.length);
+        setIsVisible(true);
+      }, 500);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [titles.length]);
   return (
     <div className="relative overflow-hidden bg-white">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-70" />
 
       <div className="relative pt-24 pb-32 sm:pt-32 sm:pb-40">
@@ -12,16 +28,23 @@ export default function Hero() {
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8 tracking-tight">
               Send Money to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-                Colombia
+              <span className="">
+              <motion.span
+                key={currentTitleIndex}
+                className="inline-block"
+                initial={{ opacity: 0, y: -10 }}
+                animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.5 }}
+              >
+                {titles[currentTitleIndex]}
+              </motion.span>
               </span>{" "}
               Instantly
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Transfer USDC/USDT on Astar zkEVM to Colombian recipients by phone
-              number. Recipients can hold stablecoins or cash out to Colombian
-              Pesos instantly.
+              Transfer USDC/USDT on zkEVM to Colombian recipients by phone
+              number. Recipients can hold stablecoins or cash out to Colombian, Venezuelan, and Argentine Pesos instantly.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
