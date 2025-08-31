@@ -3,9 +3,6 @@
   publish = ".next"
   environment = { NODE_VERSION = "22.19.0" }
 
-[build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
-
 [functions]
   node_bundler = "esbuild"
   external_node_modules = [
