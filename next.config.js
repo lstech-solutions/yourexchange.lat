@@ -18,6 +18,9 @@ const nextConfig = {
     },
     experimental: {
         outputFileTracingRoot: path.join(__dirname, '../../'),
+        // Enable experimental features for better module resolution
+        externalDir: true,
+        serverComponentsExternalPackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
         outputFileTracingExcludes: {
             '*': [
                 '**/.git/**',
@@ -58,7 +61,7 @@ const nextConfig = {
     compress: true,
     // Optimize package imports
     experimental: {
-        optimizePackageImports: ['@supabase/ssr', 'framer-motion']
+        optimizePackageImports: ['@supabase/ssr','framer-motion']
     },
     // Externalize large dependencies
     serverExternalPackages: [
