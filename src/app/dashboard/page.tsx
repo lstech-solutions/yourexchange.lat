@@ -1,15 +1,26 @@
 'use client';
 
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { FiAlertTriangle, FiUser as UserIcon } from "react-icons/fi";
-import { redirect } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
+import { FiAlertTriangle, FiUser as UserIcon } from 'react-icons/fi';
+import DashboardNavbar from '../../components/dashboard-navbar';
+import { useAuth } from '../../hooks/use-auth';
 
-export default async function Dashboard() {
-  const { user  } = useAuth();
-  
-  if (!user) {
-    return redirect("/auth");
+export default function Dashboard() {
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      redirect('/auth');
+    }
+  }, [user, loading]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return (
