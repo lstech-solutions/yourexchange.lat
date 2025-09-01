@@ -2,40 +2,80 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
-  const supabase = createClient();
+interface UseAuthReturn {
+  user: User | null;
+  loading: boolean;
+  session: Session | null;
+  signOut: () => Promise<void>;
+}
+
+export function useAuth(): UseAuthReturn {
+  const [state, setState] = useState<{
+    user: User | null;
+    session: Session | null;
+    loading: boolean;
+  }>({
+    user: null,
+    session: null,
+    loading: true,
+  });
+
+  const { user, session, loading } = state;
+  const supabase = useRef(createClient()).current;
+  const isMounted = useRef(true);
+
+  const updateState = useCallback((updates: Partial<typeof state>) => {
+    if (!isMounted.current) return;
+    
+    setState(prev => {
+      // Only update if something actually changed
+      const hasChanges = Object.keys(updates).some(
+        key => prev[key as keyof typeof prev] !== updates[key as keyof typeof updates]
+      );
+      
+      return hasChanges ? { ...prev, ...updates } : prev;
+    });
+  }, []);
+
+  const signOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+      updateState({ user: null, session: null });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
+  }, [updateState, supabase]);
 
   useEffect(() => {
-    let mounted = true;
-
+    isMounted.current = true;
+    
     const getInitialSession = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
-        if (!mounted) return;
+        if (!isMounted.current) return;
         
         if (error) {
           console.error('Error getting session:', error);
-          setUser(null);
-          setSession(null);
+          updateState({ user: null, session: null, loading: false });
           return;
         }
 
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
+        updateState({
+          session: initialSession,
+          user: initialSession?.user ?? null,
+          loading: false,
+        });
       } catch (error) {
         console.error('Unexpected error getting session:', error);
-        setUser(null);
-        setSession(null);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        updateState({
+          user: null,
+          session: null,
+          loading: false
+        });
       }
     };
 
@@ -44,21 +84,33 @@ export function useAuth() {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, newSession: Session | null) => {
-        if (!mounted) return;
+      async (event, newSession) => {
+        if (!isMounted.current) return;
         
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
+        const currentSession = newSession || (await supabase.auth.getSession()).data.session;
+        
+        updateState({
+          session: currentSession,
+          user: currentSession?.user ?? null,
+          loading: false,
+        });
       }
     );
 
     // Cleanup function
     return () => {
-      mounted = false;
+      isMounted.current = false;
       subscription?.unsubscribe();
     };
-  }, [supabase]);
+  }, [updateState, supabase]);
 
-  return { user, session, loading };
+  // Memoize the return value to prevent unnecessary re-renders
+  return useMemo(() => {
+    return {
+      user,
+      loading,
+      session,
+      signOut,
+    };
+  }, [user?.id, session?.access_token, loading, signOut]);
 }

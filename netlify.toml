@@ -18,7 +18,6 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = [
-    "@supabase/functions-js", 
     "@supabase/supabase-js",
     "@supabase/auth-helpers-nextjs",
     "@supabase/ssr",

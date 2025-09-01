@@ -1,12 +1,12 @@
 "use server";
 
-import { encodedRedirect } from "@/utils/utils";
-import { redirect } from "next/navigation";
-import { createClient as createClientComponent } from "../../supabase/server";
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { SupabaseClient } from "@supabase/supabase-js";
-import twilio from 'twilio';
-// Helper function to ensure a user exists in the database
+import { redirect } from 'next/navigation';
+import { createServerComponentClient } from "../lib/supabase/server-client";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import twilio from 'twilio';    
+
+
 async function ensureUserExists(supabase: SupabaseClient, phoneNumber: string) {
   // Check if user exists
   const { data: userData, error: userError } = await supabase
@@ -41,11 +41,9 @@ async function ensureUserExists(supabase: SupabaseClient, phoneNumber: string) {
 const RATE_LIMIT_COUNT = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 
-
-
 export const sendOtpAction = async (formData: FormData) => {
   const phoneNumber = formData.get("phone_number")?.toString();
-  const supabase = createClientComponent();
+  const supabase = createServerComponentClient();
   const now = new Date();
   const tenMinutesAgo = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS).toISOString();
 
@@ -156,7 +154,7 @@ type ResetPasswordState = {
 export const resetPasswordAction = async (formData: FormData) => {
   const password = formData.get('password')?.toString();
   const confirmPassword = formData.get('confirmPassword')?.toString();
-  const supabase = createClientComponent();
+  const supabase = createServerComponentClient();
 
   if (!password || !confirmPassword) {
     return { error: 'All fields are required' };
@@ -203,7 +201,7 @@ export const verifyOtpAction = async (formData: FormData): Promise<VerifyOtpResp
     const adminClient = createAdminClient(supabaseUrl, serviceRoleKey);
     
     // Regular client for operations that should respect RLS
-    const supabase = createClientComponent();
+    const supabase = createServerComponentClient();
     
     const client = twilio(
       process.env.TWILIO_ACCOUNT_SID,
@@ -284,21 +282,36 @@ export const verifyOtpAction = async (formData: FormData): Promise<VerifyOtpResp
       throw new Error('Failed to update verification status');
     }
 
-    // Verify the OTP with Supabase Auth
-    const { error: signInError, data: { session: authSession } } = await supabase.auth.verifyOtp({
-      phone: formattedPhoneNumber,
-      token: otpCode,
-      type: 'sms'
-    });
-    
-    console.log('OTP verification response:', { signInError, hasSession: !!authSession });
-
-    if (signInError || !authSession) {
-      console.error('Error verifying OTP:', signInError);
-      if (signInError?.code === 'otp_expired') {
-        throw new Error('The verification code has expired. Please request a new one.');
+// Verify the OTP with Supabase Auth
+    let authSession;
+    try {
+      const result = await supabase.auth.verifyOtp({
+        phone: formattedPhoneNumber,
+        token: otpCode,
+        type: 'sms'
+      });
+      
+      console.log('OTP verification response:', { error: result.error, hasSession: !!(result.data?.session) });
+      
+      if (result.error) {
+        console.error('Error verifying OTP:', result.error);
+        if (result.error.status === 403 && result.error.code === 'otp_expired') {
+          throw new Error('The verification code has expired. Please request a new code.');
+        }
+        if (result.error.status === 400) {
+          throw new Error('Invalid verification code. Please check the code and try again.');
+        }
+        throw new Error('Failed to verify code. Please try again.');
       }
-      throw new Error('Invalid verification code. Please try again.');
+
+      if (!result.data?.session) {
+        throw new Error('Session not created. Please try again.');
+      }
+      
+      authSession = result.data.session;
+    } catch (error) {
+      console.error('Error in OTP verification:', error);
+      throw error; // Re-throw to be caught by the outer catch
     }
 
     // Create or update the user in the database after successful verification
