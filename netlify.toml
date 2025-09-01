@@ -7,7 +7,6 @@
   NPM_FLAGS = "--legacy-peer-deps"
   NPM_VERBOSE = "true"
   NEXT_TELEMETRY_DISABLED = "1"
-  NODE_ENV = "production"
   NEXT_PRIVATE_TARGET = "server"
   
 # Configure build plugins
