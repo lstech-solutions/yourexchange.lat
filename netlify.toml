@@ -8,6 +8,8 @@
   NPM_VERBOSE = "true"
   NEXT_TELEMETRY_DISABLED = "1"
   NEXT_PRIVATE_TARGET = "server"
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
   
 # Configure build plugins
 [[plugins]]

@@ -36,6 +36,7 @@ const nextConfig = {
         tls: false,
         dns: false,
         child_process: false,
+        worker_threads: false,
       };
     }
 
@@ -55,7 +56,21 @@ const nextConfig = {
       modules: [path.resolve(__dirname, 'src'), 'node_modules']
     };
 
-    // Important: return the modified config
+    // Ignore Deno-related files and imports
+    const { IgnorePlugin } = require('webpack');
+    config.plugins.push(
+      new IgnorePlugin({
+        resourceRegExp: /^https:\/\/deno\.land\/.*$/
+      })
+    );
+
+    config.module.rules.push({
+      test: /\.(ts|tsx|js|jsx)$/,
+      exclude: [
+        /node_modules/,
+        /\.next/
+      ]
+    });
 
     return config;
   },
@@ -121,47 +136,5 @@ const nextConfig = {
     '@supabase/auth-helpers-nextjs',
     '@supabase/functions-js',
   ],
-  webpack: (config, { isServer, dev }) => {
-    // Ignore Deno-related files and imports
-    const { IgnorePlugin } = require('webpack');
-    config.plugins.push(
-      new IgnorePlugin({
-        resourceRegExp: /^https:\/\/deno\.land\/.*$/
-      })
-    );
-
-    config.module.rules.push({
-      test: /\.(ts|tsx|js|jsx)$/,
-      exclude: [
-        /node_modules/,
-        /\.next/
-      ]
-    });
-
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        dns: false,
-        child_process: false,
-        worker_threads: false,
-      };
-    }
-
-    return config;
-  },
 };
 
-// Only apply Sentry in production
-if (process.env.NODE_ENV === 'production') {
-  const { withSentryConfig } = require('@sentry/nextjs');
-  module.exports = withSentryConfig(nextConfig, {
-    silent: true,
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-  });
-} else {
-  module.exports = nextConfig;
-}
