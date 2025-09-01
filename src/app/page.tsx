@@ -1,17 +1,13 @@
-import Footer from "@/components/footer";
-import Hero from "@/components/hero";
-import Navbar from "@/components/navbar";
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  Shield,
-  Users,
-  Zap,
-  Smartphone,
-  Globe,
-  CreditCard,
-  Gift,
-} from "lucide-react";
+import Footer from "../components/footer";
+import Hero from "../components/hero";
+import Navbar from "../components/navbar";
+import { 
+  FiArrowUpRight,
+  FiShield,
+  FiSmartphone,
+  FiCreditCard,
+  FiGift,
+} from "react-icons/fi";
 
 export default async function Home() {
   return (
@@ -33,24 +29,24 @@ export default async function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
-                icon: <Smartphone className="w-6 h-6" />,
+                icon: <FiSmartphone className="w-6 h-6" />,
                 title: "Phone Number Lookup",
                 description:
                   "Send money using just a phone number - we handle the rest",
               },
               {
-                icon: <Shield className="w-6 h-6" />,
+                icon: <FiShield className="w-6 h-6" />,
                 title: "Blockchain Security",
-                description: "Powered by Astar zkEVM for maximum security",
+                description: "Powered by zkEVM for maximum security",
               },
               {
-                icon: <CreditCard className="w-6 h-6" />,
+                icon: <FiCreditCard className="w-6 h-6" />,
                 title: "Multiple Cash-Out Options",
                 description:
                   "Bancolombia, Nequi, Daviplata - choose what works",
               },
               {
-                icon: <Gift className="w-6 h-6" />,
+                icon: <FiGift className="w-6 h-6" />,
                 title: "NFT Receipts",
                 description: "Commemorative NFT for every completed transfer",
               },
@@ -137,7 +133,7 @@ export default async function Home() {
               className="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
             >
               Start Sending Money
-              <ArrowUpRight className="ml-2 w-5 h-5" />
+              <FiArrowUpRight className="w-5 h-5 ml-1" />
             </a>
           </div>
         </div>

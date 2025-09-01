@@ -1,36 +1,38 @@
 [build]
-  command = "npm run build"
+  command = "npm install --production=false && npm run build"
   publish = ".next"
   
 [build.environment]
   NODE_VERSION = "22.19.0"
-  NETLIFY_NEXT_PLUGIN_SKIP = "true"  # We're handling the build manually
-  NEXT_TELEMETRY_DISABLED = "1"      # Disable Next.js telemetry
-  NODE_ENV = "production"            # Ensure production mode
-  NEXT_PRIVATE_TARGET = "server"     # Target server for Next.js
+  NPM_FLAGS = "--legacy-peer-deps"
+  NPM_VERBOSE = "true"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_PRIVATE_TARGET = "server"
+  NODE_ENV = "production"
+  
+[build.processing]
+  skip_processing = true
+  
+# Configure build plugins
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [functions]
   node_bundler = "esbuild"
+  directory = ".next/server/pages/api"
   external_node_modules = [
-    "@supabase/functions-js", 
     "@supabase/supabase-js",
     "@supabase/auth-helpers-nextjs",
-    "@supabase/ssr",
-    "@radix-ui/*",
-    "class-variance-authority",
-    "clsx",
-    "tailwind-merge"
+    "@supabase/ssr"
   ]
   included_files = [
+    "package.json",
+    "package-lock.json",
+    "next.config.js",
+    "src/lib/supabase/**/*",
+    "src/types/**/*",
     ".netlify/functions-include.js"
   ]
-  directory = ".next/server/pages"
-  
-# Disable function packaging for static assets
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  # The plugin handles Next.js configuration automatically
-  # No custom inputs are needed as they're not supported by this plugin
 
 # Disable Edge Functions as we're using Next.js middleware
 [dev]

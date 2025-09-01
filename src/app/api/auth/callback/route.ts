@@ -1,5 +1,7 @@
-import { createClient } from "../../../../../supabase/server";
+import { createServerComponentClient } from "../../../../lib/supabase/server-client";
 import { NextResponse } from "next/server";
+
+export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -7,7 +9,7 @@ export async function GET(request: Request) {
   const redirect_to = requestUrl.searchParams.get("redirect_to");
 
   if (code) {
-    const supabase = await createClient();
+    const supabase = createServerComponentClient();
     await supabase.auth.exchangeCodeForSession(code);
   }
 

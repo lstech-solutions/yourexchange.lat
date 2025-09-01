@@ -1,22 +1,28 @@
 // Only include essential files for serverless functions
 module.exports = [
-  // Next.js server files
-  '.next/server/pages/**/*.js',
+  // Only include API routes and their direct dependencies
+  '.next/server/pages/api/**/*.js',
   '.next/server/chunks/**/*.js',
-  '.next/static/chunks/pages/**/*.js',
-  
-  // Public assets (be specific)
-  'public/assets/**/*',
-  'public/logo*.svg',
   
   // Configuration
   'next.config.js',
   'package.json',
   
-  // Source code (be specific to API routes and server components)
+  // Only include necessary source files
   'src/app/api/**/*',
-  'src/app/**/page.tsx',
-  'src/app/**/layout.tsx',
   'src/lib/supabase/**/*',
-  'src/middleware.ts'
-]
+  
+  // Explicitly exclude large dependencies
+  '!**/node_modules/**/*',
+  '!**/.next/cache/**',
+  '!**/.next/static/chunks/**',
+  '!**/public/**',
+  '!**/cypress/**',
+  '!**/test/**',
+  '!**/tests/**',
+  '!**/__tests__/**',
+  '!**/coverage/**',
+  '!**/dist/**',
+  '!**/build/**',
+  '!**/.vercel/**'
+].filter(Boolean);

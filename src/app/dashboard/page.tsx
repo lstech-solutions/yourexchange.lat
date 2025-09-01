@@ -1,25 +1,27 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { InfoIcon, UserCircle } from "lucide-react";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/server";
+'use client';
 
-export default async function Dashboard() {
-  const supabase = await createClient();
+import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
+import { FiAlertTriangle, FiUser as UserIcon } from 'react-icons/fi';
+import DashboardNavbar from '../../components/dashboard-navbar';
+import { useAuth } from '../../hooks/use-auth';
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function Dashboard() {
+  const { user, loading } = useAuth();
 
-  if (!user) {
-    return redirect("/auth");
+  useEffect(() => {
+    if (!loading && !user) {
+      redirect('/auth');
+    }
+  }, [user, loading]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
-
-  // Get the full user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
 
   return (
     <>
@@ -31,14 +33,14 @@ export default async function Dashboard() {
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold">Dashboard</h1>
               <div className="flex items-center gap-2">
-                <UserCircle className="w-6 h-6" />
+                <UserIcon className="w-6 h-6" />
                 <span className="font-medium">
-                  {profile?.full_name || user.email || 'User'}
+                  {user.email || 'User'}
                 </span>
               </div>
             </div>
             <div className="bg-secondary/50 text-sm p-3 px-4 rounded-lg text-muted-foreground flex gap-2 items-center">
-              <InfoIcon size="14" />
+              <FiAlertTriangle className="w-5 h-5 text-yellow-500" />
               <span>
                 Welcome back! You're now signed in with {user.phone || 'your account'}
               </span>
@@ -48,7 +50,7 @@ export default async function Dashboard() {
           {/* User Profile Section */}
           <section className="bg-card rounded-xl p-6 border shadow-sm">
             <div className="flex items-center gap-4 mb-6">
-              <UserCircle size={48} className="text-primary" />
+              <UserIcon width={48} height={48} className="text-primary" />
               <div>
                 <h2 className="font-semibold text-xl">User Profile</h2>
                 <p className="text-sm text-muted-foreground">{user.email}</p>

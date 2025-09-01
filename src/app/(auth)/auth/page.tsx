@@ -1,15 +1,15 @@
 "use client";
 
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { sendOtpAction, verifyOtpAction } from "@/app/actions";
-import Navbar from "@/components/navbar";
+import { FormMessage, Message } from "../../../components/form-message";
+import { SubmitButton } from "../../../components/submit-button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Button } from "../../../components/ui/button";
+import { sendOtpAction, verifyOtpAction } from "../../actions";
+import Navbar from "../../../components/navbar";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
-import { Smartphone, ArrowLeft } from "lucide-react";
+import { FiArrowLeft as ArrowLeftIcon } from "react-icons/fi";
 
 function AuthForm() {
   const searchParams = useSearchParams();
@@ -143,8 +143,8 @@ function AuthForm() {
               className="flex flex-col space-y-6"
             >
               <div className="space-y-2 text-center">
-                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <Smartphone className="w-6 h-6 text-blue-600" />
+                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+                  #
                 </div>
                 <h1 className="text-3xl font-semibold tracking-tight">
                   Welcome to YourExchange
@@ -166,7 +166,7 @@ function AuthForm() {
                     type="tel"
                     placeholder="+57 300 123 4567"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
                     required
                     className="w-full"
                   />
@@ -219,8 +219,8 @@ function AuthForm() {
                 }
             }} className="flex flex-col space-y-6">
               <div className="space-y-2 text-center">
-                <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Smartphone className="w-6 h-6 text-green-600" />
+                <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600">
+                  #
                 </div>
                 <h1 className="text-3xl font-semibold tracking-tight">
                   Verify Your Phone
@@ -299,7 +299,7 @@ function AuthForm() {
                   onClick={handleBackToPhone}
                   className="w-full flex items-center justify-center gap-2"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeftIcon className="w-4 h-4" />
                   Change phone number
                 </Button>
               </div>

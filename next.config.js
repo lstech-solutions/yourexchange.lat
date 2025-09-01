@@ -1,138 +1,140 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 
-// Remove the custom babel config since we'll use SWC
-const fs = require('fs');
-if (fs.existsSync(path.join(process.cwd(), '.babelrc'))) {
-    fs.renameSync(
-        path.join(process.cwd(), '.babelrc'),
-        path.join(process.cwd(), '.babelrc.bak')
-    );
-}
-
 const nextConfig = {
-    output: 'standalone',
-    transpilePackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
-    images: {
-        domains: ['images.unsplash.com'],
-        unoptimized: true, // Disable Image Optimization API
-    },
-    experimental: {
-        outputFileTracingRoot: path.join(__dirname, '../../'),
-        // Enable experimental features for better module resolution
-        externalDir: true,
-        serverComponentsExternalPackages: ['@radix-ui/*', 'class-variance-authority', 'clsx', 'tailwind-merge'],
-        outputFileTracingExcludes: {
-            '*': [
-                '**/.git/**',
-                '**/.next/**',
-                '**/node_modules/**',
-                '**/.cache/**',
-                '**/cypress/**',
-                '**/test/**',
-                '**/tests/**',
-                '**/__tests__/**',
-                '**/coverage/**',
-                '**/dist/**',
-                '**/build/**',
-                '**/.vercel/**',
-                '**/.netlify/**',
-                '**/CHANGELOG.md',
-                '**/*.md',
-                '**/*.mdx',
-                '**/*.test.ts',
-                '**/*.test.js',
-                '**/*.spec.ts',
-                '**/*.spec.js',
-                '**/tsconfig.json',
-                '**/tsconfig.*.json',
-                '**/next-env.d.ts',
-            ],
-        },
-        // Enable granular chunks for better caching
-        granularChunks: true,
-        // Disable source maps in production
-        productionBrowserSourceMaps: false,
-    },
-    // Enable SWC minification
-    swcMinify: true,
-    // Disable X-Powered-By header
-    poweredByHeader: false,
-    // Enable compression
-    compress: true,
-    // Optimize package imports
-    experimental: {
-        optimizePackageImports: ['@supabase/ssr','framer-motion']
-    },
-    // Externalize large dependencies
-    serverExternalPackages: [
-        '@supabase/supabase-js',
-        '@supabase/auth-helpers-nextjs',
+  // Enable React strict mode
+  reactStrictMode: true,
+
+  // Configure for Supabase compatibility
+  // Configure for Supabase compatibility
+  experimental: {
+    serverComponentsExternalPackages: [
+      '@supabase/ssr',
+      '@supabase/realtime-js',
     ],
-    webpack: (config, { isServer, dev }) => {
-        // Ignore Deno-related files and imports
-        const { IgnorePlugin } = require('webpack');
-        config.plugins.push(
-            new IgnorePlugin({
-                resourceRegExp: /^https:\/\/deno\.land\/.*$/
-            })
-        );
-
-        // Ignore the supabase-functions directory completely
-        config.plugins.push(
-            new IgnorePlugin({
-                checkResource(resource) {
-                    // Skip in development to avoid excessive logging
-                    if (dev) return false;
-
-                    const isSupabaseFunction =
-                        resource.includes('supabase-functions') ||
-                        resource.includes('supabase/functions');
-
-                    if (isSupabaseFunction) {
-                        console.log('Ignoring Supabase function:', resource);
-                        return true;
-                    }
-                    return false;
-                }
-            })
-        );
-
-        // Exclude supabase functions from TypeScript/JavaScript processing
-        config.module.rules.push({
-            test: /\.(ts|tsx|js|jsx)$/,
-            exclude: [
-                /node_modules/,
-                /\.next/,
-                /supabase-functions/,
-                /supabase\/functions/
-            ]
-        });
-
-        if (!isServer) {
-            config.resolve.fallback = {
-                ...config.resolve.fallback,
-                fs: false,
-                net: false,
-                tls: false,
-                dns: false,
-                child_process: false,
-                worker_threads: false,
-            };
-        }
-
-        return config;
+    serverActions: {
+      bodySizeLimit: '4mb',
     },
+  },
+  
+  // Explicitly transpile Supabase packages
+  transpilePackages: [
+    '@supabase/realtime-js',
+    '@supabase/ssr',
+    '@supabase/auth-helpers-nextjs'
+  ],
+
+  // Webpack configuration
+  webpack: (config, { isServer, dev, webpack }) => {
+    // Handle Node.js modules that should be ignored in the browser
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...(config.resolve.fallback || {}),
+        // These modules are server-side only
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+        worker_threads: false,
+      };
+    }
+
+    // Add custom webpack configurations
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve.alias,
+        // Ensure consistent module resolution
+        '@': path.resolve(__dirname, './src'),
+      },
+      // Ensure .js extensions are resolved for ESM modules
+      extensionAlias: {
+        '.js': ['.js', '.ts', '.tsx']
+      },
+      // Add module directories
+      modules: [path.resolve(__dirname, 'src'), 'node_modules']
+    };
+
+    // Ignore Deno-related files and imports
+    const { IgnorePlugin } = require('webpack');
+    config.plugins.push(
+      new IgnorePlugin({
+        resourceRegExp: /^https:\/\/deno\.land\/.*$/
+      })
+    );
+
+    config.module.rules.push({
+      test: /\.(ts|tsx|js|jsx)$/,
+      exclude: [
+        /node_modules/,
+        /\.next/
+      ]
+    });
+
+    return config;
+  },
+
+  // Output standalone for Docker support
+  output: 'standalone',
+
+  // File tracing configuration
+  outputFileTracingRoot: path.join(__dirname, '../../'),
+  outputFileTracingExcludes: {
+    '*': [
+      '**/.git/**',
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/.cache/**',
+      '**/cypress/**',
+      '**/test/**',
+      '**/tests/**',
+      '**/__tests__/**',
+      '**/coverage/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.vercel/**',
+      '**/.netlify/**',
+      '**/CHANGELOG.md',
+      '**/*.md',
+      '**/*.mdx',
+      '**/*.test.ts',
+      '**/*.test.js',
+      '**/*.spec.ts',
+      '**/*.spec.js',
+      '**/tsconfig.json',
+      '**/tsconfig.*.json',
+      '**/next-env.d.ts',
+    ],
+  },
+
+  // Transpile required packages
+  transpilePackages: [
+    '@radix-ui/*',
+    'class-variance-authority',
+    'clsx',
+    'tailwind-merge',
+    'framer-motion'
+  ],
+
+  // Image optimization
+  images: {
+    domains: ['images.unsplash.com'],
+    unoptimized: true, // Disable Image Optimization API
+  },
+
+  // Experimental features
+  experimental: {
+    externalDir: true
+  },
+  // Disable X-Powered-By header
+  poweredByHeader: false,
+  // Enable compression
+  compress: true,
+  // Externalize large dependencies
+  serverExternalPackages: [
+    '@supabase/auth-helpers-nextjs',
+    '@supabase/functions-js',
+  ],
 };
 
-// Only apply Sentry in production
-if (process.env.NODE_ENV === 'production') {
-    const { withSentryConfig } = require('@sentry/nextjs');
-    module.exports = withSentryConfig(nextConfig, {
-        silent: true,
-        org: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
-    });
-} else {
-    module.exports = nextConfig;
-}

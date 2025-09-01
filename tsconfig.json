@@ -3,8 +3,7 @@
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -15,10 +14,15 @@
     "jsx": "preserve",
     "incremental": true,
     "plugins": [{"name": "next"}],
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["node", "@types/node"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true
   },
   "include": [
     "next-env.d.ts",

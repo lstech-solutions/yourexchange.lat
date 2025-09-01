@@ -2,7 +2,7 @@
 
 import { Session, User } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '../../lib/supabase/client';
 
 type AuthContextType = {
   user: User | null;
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
