@@ -16,11 +16,7 @@
     "plugins": [{"name": "next"}],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/components/ui/*": ["./src/components/ui/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/lib/*": ["./src/lib/*"]
+      "@/*": ["./src/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
