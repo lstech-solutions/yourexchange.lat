@@ -23,13 +23,7 @@
   external_node_modules = [
     "@supabase/supabase-js",
     "@supabase/auth-helpers-nextjs",
-    "@supabase/ssr",
-    "@radix-ui/*",
-    "class-variance-authority",
-    "clsx",
-    "tailwind-merge",
-    "framer-motion",
-    "lucide-react"
+    "@supabase/ssr"
   ]
   included_files = [
     "package.json",
