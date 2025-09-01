@@ -12,7 +12,6 @@ module.exports = [
   // Configuration
   'next.config.js',
   'package.json',
-  'tsconfig.json',
   
   // Source code (be specific to API routes and server components)
   'src/app/api/**/*',
