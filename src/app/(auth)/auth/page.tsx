@@ -1,12 +1,12 @@
 "use client";
 
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { sendOtpAction, verifyOtpAction } from "@/app/actions";
-import Navbar from "@/components/navbar";
+import { FormMessage, Message } from "../../../components/form-message";
+import { SubmitButton } from "../../../components/submit-button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Button } from "../../../components/ui/button";
+import { sendOtpAction, verifyOtpAction } from "../../actions";
+import Navbar from "../../../components/navbar";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { FiArrowLeft as ArrowLeftIcon } from "react-icons/fi";
