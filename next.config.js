@@ -46,8 +46,7 @@ const nextConfig = {
       alias: {
         ...config.resolve.alias,
         // Ensure consistent module resolution
-        '@': path.resolve(__dirname, './src'),
-        '@/components': path.resolve(__dirname, './src/components'),
+        '@/*': path.resolve(__dirname, './src/*'),
       },
       // Ensure .js extensions are resolved for ESM modules
       extensionAlias: {
