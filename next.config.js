@@ -26,7 +26,6 @@ const nextConfig = {
 
   // Webpack configuration
   webpack: (config, { isServer, dev, webpack }) => {
-
     // Handle Node.js modules that should be ignored in the browser
     if (!isServer) {
       config.resolve.fallback = {
@@ -46,13 +45,17 @@ const nextConfig = {
       alias: {
         ...config.resolve.alias,
         // Ensure consistent module resolution
-        '@/*': path.resolve(__dirname, './src/*'),
+        '@': path.resolve(__dirname, './src'),
       },
       // Ensure .js extensions are resolved for ESM modules
       extensionAlias: {
         '.js': ['.js', '.ts', '.tsx']
-      }
+      },
+      // Add module directories
+      modules: [path.resolve(__dirname, 'src'), 'node_modules']
     };
+
+    // Important: return the modified config
 
     return config;
   },
