@@ -30,9 +30,7 @@
     "package-lock.json",
     "next.config.js",
     "src/lib/supabase/**/*",
-    "src/types/**/*"
-  ]
-  included_files = [
+    "src/types/**/*",
     ".netlify/functions-include.js"
   ]
   directory = ".next/server/pages"
