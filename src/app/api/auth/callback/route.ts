@@ -1,4 +1,4 @@
-import { createServerComponentClient } from "@/lib/supabase/server-client";
+import { createServerComponentClient } from "../../../../lib/supabase/server-client";
 import { NextResponse } from "next/server";
 
 export const runtime = 'nodejs';

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import Navbar from "@/components/navbar";
+import Navbar from "../../../../src/components/navbar";
 import { ResetPasswordForm } from './reset-password-form';
 
 export default function ResetPasswordPage() {
